@@ -1,0 +1,62 @@
+# 基本配置
+project_name: "knowledge-distillation-reasoning"
+random_seed: 42
+output_dir: "outputs/default"
+log_dir: "outputs/logs"
+
+# 数据配置
+data:
+  train_file: "data/ARC-Challenge-Train.jsonl"
+  valid_file: "data/ARC-Challenge-Valid.jsonl"  # 可选，如果没有会自动划分
+  test_file: "data/ARC-Challenge-Test.jsonl"    # 可选
+  num_workers: 4
+  max_seq_length: 512
+  batch_size: 8
+  valid_batch_size: 16
+  cache_dir: "data/cache"
+
+# 模型配置
+model:
+  teacher_model: "/home/zp/.cache/modelscope/hub/models/Qwen/Qwen3-4B"
+  student_model: "/home/zp/.cache/modelscope/hub/models/Qwen/Qwen3-0.6B"
+  use_peft: true                                    # 是否使用PEFT
+  lora_r: 16                                        # LoRA秩
+  lora_alpha: 32                                    # LoRA缩放
+  lora_dropout: 0.1                                 # LoRA随机丢弃率
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]  # LoRA目标模块
+
+# 训练配置
+training:
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  num_train_epochs: 3
+  warmup_ratio: 0.1
+  gradient_accumulation_steps: 4
+  fp16: true                    # 混合精度训练
+  bf16: false                   # BF16训练 (优先于FP16)
+  progressive_freezing: true    # 渐进式冻结
+  freezing_layers_schedule:     # 每个epoch结束解冻的层
+    - ["embeddings"]
+    - ["encoder.layer.0", "encoder.layer.1"]
+    - ["encoder.layer.2", "encoder.layer.3"]
+  multi_task_weights:           # 多任务损失权重
+    answer_prediction: 1.0
+    reasoning_generation: 0.5
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 100
+
+# 评估配置
+evaluation:
+  metrics: ["accuracy", "f1", "exact_match"]
+  generate_explanations: true
+  num_beams: 4
+  max_new_tokens: 256
+
+# 推理配置
+inference:
+  quantization: "int8"         # 量化策略：none, int8, int4
+  batch_inference: true        # 批量推理
+  batch_size: 32               # 推理批大小
+  device_map: "auto"           # 设备映射 
