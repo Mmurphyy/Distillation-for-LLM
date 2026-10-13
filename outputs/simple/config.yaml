@@ -1,0 +1,51 @@
+data:
+  batch_size: 1
+  cache_dir: data/cache
+  max_seq_length: 256
+  num_workers: 2
+  train_file: data/ARC-Challenge-Train.jsonl
+  valid_batch_size: 2
+  valid_file: data/ARC-Challenge-Test.jsonl
+evaluation:
+  generate_explanations: false
+  max_new_tokens: 64
+  metrics:
+  - accuracy
+  num_beams: 2
+inference:
+  batch_inference: false
+  batch_size: 1
+  device_map: auto
+  quantization: int8
+log_dir: outputs/logs
+model:
+  lora_alpha: 16
+  lora_dropout: 0.05
+  lora_r: 8
+  student_model: /home/zp/.cache/modelscope/hub/models/Qwen/Qwen3-0.6B
+  target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  teacher_model: /home/zp/.cache/modelscope/hub/models/Qwen/Qwen3-4B
+  use_peft: true
+output_dir: outputs/simple
+project_name: knowledge-distillation-reasoning-simple
+random_seed: 42
+training:
+  bf16: false
+  eval_steps: 100
+  fp16: true
+  gradient_accumulation_steps: 2
+  learning_rate: 1e-4
+  logging_steps: 10
+  max_grad_norm: 0.5
+  multi_task_weights:
+    answer_prediction: 1.0
+    reasoning_generation: 0.0
+  num_train_epochs: 1
+  progressive_freezing: false
+  save_steps: 100
+  warmup_ratio: 0.1
+  weight_decay: 0.01
